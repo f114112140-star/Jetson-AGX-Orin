@@ -87,18 +87,23 @@ cd ~/docker/yolo11
 sudo docker build -t yolo11-jetson .
 ```
 # 執行程式
-進入資料夾，並啟動yolo11容器
-
-cd ~/Desktop/Detect_MoveTrack
-
-sudo docker run --runtime=nvidia -it --rm \
+啟動yolo11容器
+```
+sudo docker run -it --rm \
+  --gpus all \
+  --runtime=nvidia \
+  --ipc=host \
+  --ulimit memlock=-1 \
+  --ulimit stack=67108864 \
   -e DISPLAY=$DISPLAY \
-  -e QT_X11_NO_MITSHM=1 \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v ~/Desktop/Detect_MoveTrack:/workspace \
-  --network host \
-  yolo11-jetson
-
-進入容器後 cd /workspace
-
-執行 python3 main.py
+```
+進入容器後 
+```
+cd /workspace
+```
+執行
+```
+python3 main.py
+```
