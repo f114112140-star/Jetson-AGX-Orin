@@ -8,6 +8,18 @@ https://medium.com/@EricChou711/nvidia-jetson-agx-orin-%E5%AE%8C%E6%95%B4%E5%88%
 由於jetPack 6.2.1沒有提供PyTorch GPU版，所以要啟用NVIDIA官方Docker(含PyTorch+CUDA)，
 由於官方沒有yolo11 pose容器可以直接跑在jetson，所以自己建立image(yolo11-jetson)
 之後再將專案掛進Docker裡面執行
+
+拉取 NVIDIA 官方 PyTorch GPU 映像
+```
+nvcr.io/nvidia/pytorch:24.06-py3
+```
+這是 JetPack 6.2.1（CUDA 12.2）唯一支援 GPU 的 PyTorch。
+
+成功啟動 PyTorch GPU 容器
+```
+sudo docker run -it --rm --runtime=nvidia nvcr.io/nvidia/pytorch:24.06-py3
+```
+
 # 執行程式
 進入資料夾，並啟動yolo11容器
 
