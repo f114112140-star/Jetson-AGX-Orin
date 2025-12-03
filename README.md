@@ -19,7 +19,73 @@ nvcr.io/nvidia/pytorch:24.06-py3
 ```
 sudo docker run -it --rm --runtime=nvidia nvcr.io/nvidia/pytorch:24.06-py3
 ```
+## 建立image(yolo11-jetson)
+建立dockerfile放在(cd ~/docker/yolo11)裡面
+```
+# ============================================================
+# Jetson Orin YOLO + PyTorch + Flask + WebSocket + RTSP 開發環境
+# Base Image: NVIDIA PyTorch 24.06 (CUDA 12.x, JetPack 6.x)
+# ============================================================
 
+FROM nvcr.io/nvidia/pytorch:24.06-py3
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# ------------------------------------------------------------
+# 1. 安裝系統工具 & GStreamer（RTSP 需要）
+# ------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-pip python3-dev \
+    libglib2.0-0 libgl1-mesa-glx libgtk-3-0 \
+    gstreamer1.0-tools \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    ffmpeg \
+    nano vim git curl wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip wheel setuptools
+
+# ------------------------------------------------------------
+# 2. 安裝 YOLO11 + 推論相關工具
+# ------------------------------------------------------------
+RUN pip install ultralytics supervision onnx onnxruntime
+
+# ------------------------------------------------------------
+# 3. 安裝你的 requirements.txt 所需套件
+# ------------------------------------------------------------
+RUN pip install \
+    Flask==3.1.2 \
+    Werkzeug==3.1.3 \
+    websockets==15.0.1 \
+    pillow==10.2.0 \
+    PyYAML==6.0.1 \
+    requests==2.32.3 \
+    psutil==5.9.8 \
+    typing_extensions==4.7.1 \
+    ffmpeg-python==0.2.0
+
+# ------------------------------------------------------------
+# 4. 複製你的 Detect_MoveTrack 專案
+# ------------------------------------------------------------
+WORKDIR /workspace
+COPY . /workspace
+
+ENV PYTHONPATH=/workspace:$PYTHONPATH
+
+# ------------------------------------------------------------
+# 5. 預設執行 main.py
+# ------------------------------------------------------------
+CMD ["python3", "main.py"]
+```
+## 開始建置 Image
+```
+cd ~/docker/yolo11
+sudo docker build -t yolo11-jetson .
+```
 # 執行程式
 進入資料夾，並啟動yolo11容器
 
