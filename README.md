@@ -11,14 +11,9 @@ https://medium.com/@EricChou711/nvidia-jetson-agx-orin-%E5%AE%8C%E6%95%B4%E5%88%
 
 拉取 NVIDIA 官方 PyTorch GPU 映像
 ```
-nvcr.io/nvidia/pytorch:24.06-py3
+sudo docker pull nvcr.io/nvidia/l4t-base:r36.2.0
 ```
-這是 JetPack 6.2.1（CUDA 12.2）唯一支援 GPU 的 PyTorch。
 
-成功啟動 PyTorch GPU 容器
-```
-sudo docker run -it --rm --runtime=nvidia nvcr.io/nvidia/pytorch:24.06-py3
-```
 ## 建立image(yolo11-jetson)
 建立dockerfile放在(cd ~/docker/yolo11)裡面
 ```
@@ -27,7 +22,7 @@ sudo docker run -it --rm --runtime=nvidia nvcr.io/nvidia/pytorch:24.06-py3
 # Base Image: NVIDIA Jetson PyTorch 2.1 (JetPack 6.x / CUDA 12.2)
 # ============================================================
 
-FROM nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1
+FROM nvcr.io/nvidia/l4t-base:r36.2.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -94,7 +89,7 @@ CMD ["/bin/bash"]
 ## 開始建置 Image
 ```
 cd ~/docker/yolo11
-sudo docker build -t yolo11-jetson .
+sudo docker build --network host -t yolo11-jetson .
 ```
 # 執行程式
 啟動yolo11容器
