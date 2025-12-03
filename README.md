@@ -24,18 +24,19 @@ sudo docker run -it --rm --runtime=nvidia nvcr.io/nvidia/pytorch:24.06-py3
 ```
 # ============================================================
 # Jetson Orin YOLO + PyTorch + Flask + WebSocket + RTSP 開發環境
-# Base Image: NVIDIA PyTorch 24.06 (CUDA 12.x, JetPack 6.x)
+# Base Image: NVIDIA Jetson PyTorch 2.1 (JetPack 6.x / CUDA 12.2)
 # ============================================================
 
-FROM nvcr.io/nvidia/pytorch:24.06-py3
+FROM nvcr.io/nvidia/l4t-pytorch:r36.2.0-pth2.1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 # ------------------------------------------------------------
-# 1. 安裝系統工具 & GStreamer（RTSP 需要）
+# 1. 系統依賴 + GStreamer（RTSP 需要） + Jetson 原生 OpenCV
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-dev \
+    python3-opencv libopencv-dev \
     libglib2.0-0 libgl1-mesa-glx libgtk-3-0 \
     gstreamer1.0-tools \
     gstreamer1.0-plugins-base \
@@ -47,15 +48,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano vim git curl wget \
     && rm -rf /var/lib/apt/lists/*
 
+# ------------------------------------------------------------
+# 2. 升級 pip 並鎖定 numpy (避免 numpy2.x 導致 cv2 崩潰)
+# ------------------------------------------------------------
 RUN pip install --upgrade pip wheel setuptools
+RUN pip uninstall -y numpy || true
+RUN pip install numpy==1.26.4
 
 # ------------------------------------------------------------
-# 2. 安裝 YOLO11 + 推論相關工具
+# 3. 安裝 YOLO11 + 推論工具
+#    (禁止 pip OpenCV，避免覆蓋 Jetson 原生 OpenCV)
 # ------------------------------------------------------------
+ENV UV_DISABLE_OPENCV_IMPORT=1
 RUN pip install ultralytics supervision onnx onnxruntime
 
+# 強制移除 pip opencv（確保使用 Jetson 內建 cv2）
+RUN pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true
+
 # ------------------------------------------------------------
-# 3. 安裝你的 requirements.txt 所需套件
+# 4. 安裝你的 requirements.txt 套件
 # ------------------------------------------------------------
 RUN pip install \
     Flask==3.1.2 \
@@ -69,17 +80,16 @@ RUN pip install \
     ffmpeg-python==0.2.0
 
 # ------------------------------------------------------------
-# 4. 複製你的 Detect_MoveTrack 專案
+# 5. 複製你的 Detect_MoveTrack 專案
 # ------------------------------------------------------------
 WORKDIR /workspace
 COPY . /workspace
-
 ENV PYTHONPATH=/workspace:$PYTHONPATH
 
 # ------------------------------------------------------------
-# 5. 預設執行 main.py
+# 6. 預設進入 bash（不啟動 main.py）
 # ------------------------------------------------------------
-CMD ["python3", "main.py"]
+CMD ["/bin/bash"]
 ```
 ## 開始建置 Image
 ```
