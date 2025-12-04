@@ -60,8 +60,8 @@ sudo docker pull nvcr.io/nvidia/l4t-base:r36.2.0
 建立dockerfile放在(cd ~/docker/yolo11)裡面
 ```
 # ============================================================
-# Jetson Orin YOLO11 + PyTorch 2.1.0 + Flask + WebSocket + RTSP
-# Base Image: NVIDIA Jetson L4T Base (CUDA runtime auto-mount)
+# Jetson Orin – Full CUDA + PyTorch 2.1 + YOLO11 Runtime
+# Base Image: l4t-base:r36.2.0 (JetPack 6.0 / CUDA 12.2)
 # ============================================================
 
 FROM nvcr.io/nvidia/l4t-base:r36.2.0
@@ -69,7 +69,7 @@ FROM nvcr.io/nvidia/l4t-base:r36.2.0
 ARG DEBIAN_FRONTEND=noninteractive
 
 # ------------------------------------------------------------
-# 1. 安裝系統依賴 + GStreamer + Jetson OpenCV
+# 1. 安裝系統依賴 + Jetson 原生 OpenCV + GStreamer
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-dev \
@@ -87,31 +87,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano vim git curl wget \
     && rm -rf /var/lib/apt/lists/*
 
+
 # ------------------------------------------------------------
-# 2. 固定 numpy 版本（避免破壞 OpenCV）
+# 2. 修正 NumPy 版本（Jetson OpenCV 必須 < 2.0）
 # ------------------------------------------------------------
 RUN pip install --upgrade pip wheel setuptools
+RUN pip uninstall -y numpy || true
 RUN pip install numpy==1.26.4
 
-# ------------------------------------------------------------
-# 3. 安裝 PyTorch 2.1.0 (Jetson 專用 wheel)
-# ------------------------------------------------------------
-COPY torch-2.1.0-cp310-cp310-linux_aarch64.whl /tmp/
-RUN pip install /tmp/torch-2.1.0-cp310-cp310-linux_aarch64.whl
 
 # ------------------------------------------------------------
-# 4. 安裝 YOLO11 依賴（不碰 OpenCV）
+# 3. 安裝 YOLO11 + ONNX（不安裝 pip opencv）
 # ------------------------------------------------------------
 ENV UV_DISABLE_OPENCV_IMPORT=1
+
 RUN pip install ultralytics supervision --no-deps
 RUN pip install onnx==1.14.1
 RUN pip install onnxruntime==1.17.3 --no-deps
 
-# 確保沒有 pip opencv 汙染 Jetson 內建 cv2
 RUN pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true
 
+
 # ------------------------------------------------------------
-# 5. 你的專案依賴
+# 4. 安裝 Flask + Websocket + 其他依賴
 # ------------------------------------------------------------
 RUN pip install \
     Flask==3.1.2 \
@@ -124,14 +122,31 @@ RUN pip install \
     typing_extensions==4.7.1 \
     ffmpeg-python==0.2.0
 
+
 # ------------------------------------------------------------
-# 6. 容器工作路徑
+# 5. 安裝 PyTorch 2.1.0（Jetson 官方版）
+# ------------------------------------------------------------
+
+# 將 .whl 複製到容器
+COPY torch-2.1.0-cp310-cp310-linux_aarch64.whl /tmp/
+
+# 安裝 PyTorch
+RUN pip install /tmp/torch-2.1.0-cp310-cp310-linux_aarch64.whl
+
+
+# ------------------------------------------------------------
+# 6. 建立 OpenBLAS symlink（修正 torch import 問題）
+# ------------------------------------------------------------
+RUN ln -s /usr/lib/aarch64-linux-gnu/openblas-pthread/libopenblas.so.0 /usr/lib/aarch64-linux-gnu/libopenblas.so.0 || true
+RUN ln -s /usr/lib/aarch64-linux-gnu/openblas-pthread/libopenblas.so.0 /usr/local/lib/libopenblas.so.0 || true
+RUN ldconfig
+
+
+# ------------------------------------------------------------
+# 7. 設定工作目錄（你的程式會在這裡掛載）
 # ------------------------------------------------------------
 WORKDIR /workspace
 
-# ------------------------------------------------------------
-# 7. 預設進入 bash
-# ------------------------------------------------------------
 CMD ["/bin/bash"]
 ```
 ## 開始建置 Image
