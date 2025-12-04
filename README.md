@@ -144,20 +144,21 @@ cd ~/docker/yolo11
 sudo docker build --network host -t yolo11-jetson .
 ```
 # 執行程式
+jetson主機執行
+```
+xhost +
+```
 啟動yolo11容器
 ```
 sudo docker run -it --rm \
   --runtime=nvidia \
   --gpus all \
-  -e NVIDIA_VISIBLE_DEVICES=all \
-  -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
-  -e LD_LIBRARY_PATH=/usr/local/cuda-12.2/targets/aarch64-linux/lib:/usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu/tegra \
-  -v /usr/local/cuda-12.2:/usr/local/cuda-12.2 \
-  -v /usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu \
-  -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v ~/Desktop/Detect_MoveTrack:/workspace \
   --ipc=host \
   yolo11-jetson
+
 ```
 進入容器後 
 ```
