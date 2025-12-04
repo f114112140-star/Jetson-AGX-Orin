@@ -56,7 +56,9 @@ RUN pip install numpy==1.26.4
 #    (禁止 pip OpenCV，避免覆蓋 Jetson 原生 OpenCV)
 # ------------------------------------------------------------
 ENV UV_DISABLE_OPENCV_IMPORT=1
-RUN pip install ultralytics supervision onnx onnxruntime
+RUN pip install ultralytics supervision --no-deps
+RUN pip install onnx==1.14.1
+RUN pip install onnxruntime==1.17.3 --no-deps
 
 # 強制移除 pip opencv（確保使用 Jetson 內建 cv2）
 RUN pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true
@@ -79,8 +81,7 @@ RUN pip install \
 # 5. 複製你的 Detect_MoveTrack 專案
 # ------------------------------------------------------------
 WORKDIR /workspace
-COPY . /workspace
-ENV PYTHONPATH=/workspace
+
 
 # ------------------------------------------------------------
 # 6. 預設進入 bash（不啟動 main.py）
