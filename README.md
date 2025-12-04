@@ -25,6 +25,31 @@ print("Torch:", torch.__version__)
 print("CUDA:", torch.cuda.is_available())
 EOF
 ```
+(3)torchvision 安裝(因為 Jetson 沒有提供 wheel，所以 必須從 source 編譯)
+
+安裝依賴
+```
+sudo apt install libjpeg-dev zlib1g-dev
+```
+下載 torchvision source
+```
+cd ~
+git clone https://github.com/pytorch/vision.git
+cd vision
+git checkout v0.16.0
+```
+編譯與安裝
+```
+python3 setup.py install
+```
+測試
+```
+python3 - << EOF
+import torchvision
+print("torchvision:", torchvision.__version__)
+EOF
+```
+
 拉取 NVIDIA 官方 PyTorch GPU 映像
 ```
 sudo docker pull nvcr.io/nvidia/l4t-base:r36.2.0
@@ -117,12 +142,21 @@ sudo docker run --runtime=nvidia -it --rm \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v ~/Desktop/Detect_MoveTrack:/workspace \
+  -v /usr/local/lib/python3.10/dist-packages:/usr/local/lib/python3.10/dist-packages \
   --network host \
   yolo11-jetson
 ```
 進入容器後 
 ```
 cd /workspace
+```
+容器內測試
+```
+python3 - << EOF
+import torch
+print("Torch:", torch.__version__)
+print("CUDA:", torch.cuda.is_available())
+EOF
 ```
 執行
 ```
