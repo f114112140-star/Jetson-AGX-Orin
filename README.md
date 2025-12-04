@@ -9,7 +9,7 @@ https://medium.com/@EricChou711/nvidia-jetson-agx-orin-%E5%AE%8C%E6%95%B4%E5%88%
 由於官方沒有yolo11 pose容器可以直接跑在jetson，所以自己建立image(yolo11-jetson)
 之後再將專案掛進Docker裡面執行
 
-(2)安裝pytroch到jetson主機
+(2)安裝pytroch到jetson主機要跟dockerfile放一起
 
 下載torch-2.1.0-cp310-cp310-linux_aarch64.whl
 
