@@ -97,11 +97,9 @@ sudo docker build --network host -t yolo11-jetson .
 ```
 sudo docker run --runtime=nvidia -it --rm \
   --ipc=host \
-  --ulimit memlock=-1 \
-  --ulimit stack=67108864 \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v ~/docker/yolo11:/workspace \
+  -v ~/Desktop/Detect_MoveTrack:/workspace \
   --network host \
   yolo11-jetson
 ```
