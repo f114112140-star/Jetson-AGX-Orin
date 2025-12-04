@@ -40,7 +40,8 @@ git checkout v0.16.0
 ```
 編譯與安裝
 ```
-python3 setup.py install
+cd ~/vision
+sudo -E python3 setup.py install
 ```
 測試
 ```
