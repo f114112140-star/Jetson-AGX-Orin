@@ -152,12 +152,15 @@ xhost +
 sudo docker run -it --rm \
   --runtime=nvidia \
   --gpus all \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e NVIDIA_VISIBLE_DEVICES=all \
+  -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+  -e LD_LIBRARY_PATH=/usr/local/cuda-12.2/targets/aarch64-linux/lib:/usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu/tegra \
+  -v /usr/local/cuda-12.2:/usr/local/cuda-12.2 \
+  -v /usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu \
+  -v /usr/lib/aarch64-linux-gnu/tegra:/usr/lib/aarch64-linux-gnu/tegra \
   -v ~/Desktop/Detect_MoveTrack:/workspace \
   --ipc=host \
   yolo11-jetson
-
 ```
 進入容器後 
 ```
