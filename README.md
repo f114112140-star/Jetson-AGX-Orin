@@ -60,8 +60,8 @@ sudo docker pull nvcr.io/nvidia/l4t-base:r36.2.0
 建立dockerfile放在(cd ~/docker/yolo11)裡面
 ```
 # ============================================================
-# Jetson Orin YOLO + PyTorch + Flask + WebSocket + RTSP 開發環境
-# Base Image: NVIDIA Jetson PyTorch 2.1 (JetPack 6.x / CUDA 12.2)
+# Jetson Orin YOLO11 + PyTorch 2.1.0 + Flask + WebSocket + RTSP
+# Base Image: NVIDIA Jetson L4T Base (CUDA runtime auto-mount)
 # ============================================================
 
 FROM nvcr.io/nvidia/l4t-base:r36.2.0
@@ -69,11 +69,12 @@ FROM nvcr.io/nvidia/l4t-base:r36.2.0
 ARG DEBIAN_FRONTEND=noninteractive
 
 # ------------------------------------------------------------
-# 1. 系統依賴 + GStreamer（RTSP 需要） + Jetson 原生 OpenCV
+# 1. 安裝系統依賴 + GStreamer + Jetson OpenCV
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-dev \
     build-essential \
+    libopenblas-base \
     python3-opencv libopencv-dev \
     libglib2.0-0 libgl1-mesa-glx libgtk-3-0 \
     gstreamer1.0-tools \
@@ -87,26 +88,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# 2. 升級 pip 並鎖定 numpy (避免 numpy2.x 導致 cv2 崩潰)
+# 2. 固定 numpy 版本（避免破壞 OpenCV）
 # ------------------------------------------------------------
 RUN pip install --upgrade pip wheel setuptools
-RUN pip uninstall -y numpy || true
 RUN pip install numpy==1.26.4
 
 # ------------------------------------------------------------
-# 3. 安裝 YOLO11 + 推論工具
-#    (禁止 pip OpenCV，避免覆蓋 Jetson 原生 OpenCV)
+# 3. 安裝 PyTorch 2.1.0 (Jetson 專用 wheel)
+# ------------------------------------------------------------
+COPY torch-2.1.0-cp310-cp310-linux_aarch64.whl /tmp/
+RUN pip install /tmp/torch-2.1.0-cp310-cp310-linux_aarch64.whl
+
+# ------------------------------------------------------------
+# 4. 安裝 YOLO11 依賴（不碰 OpenCV）
 # ------------------------------------------------------------
 ENV UV_DISABLE_OPENCV_IMPORT=1
 RUN pip install ultralytics supervision --no-deps
 RUN pip install onnx==1.14.1
 RUN pip install onnxruntime==1.17.3 --no-deps
 
-# 強制移除 pip opencv（確保使用 Jetson 內建 cv2）
+# 確保沒有 pip opencv 汙染 Jetson 內建 cv2
 RUN pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true
 
 # ------------------------------------------------------------
-# 4. 安裝你的 requirements.txt 套件
+# 5. 你的專案依賴
 # ------------------------------------------------------------
 RUN pip install \
     Flask==3.1.2 \
@@ -120,13 +125,12 @@ RUN pip install \
     ffmpeg-python==0.2.0
 
 # ------------------------------------------------------------
-# 5. 複製你的 Detect_MoveTrack 專案
+# 6. 容器工作路徑
 # ------------------------------------------------------------
 WORKDIR /workspace
 
-
 # ------------------------------------------------------------
-# 6. 預設進入 bash（不啟動 main.py）
+# 7. 預設進入 bash
 # ------------------------------------------------------------
 CMD ["/bin/bash"]
 ```
