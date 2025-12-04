@@ -142,14 +142,13 @@ sudo docker build --network host -t yolo11-jetson .
 # 執行程式
 啟動yolo11容器
 ```
-sudo docker run --runtime=nvidia -it --rm \
-  --ipc=host \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
+sudo docker run -it --rm \
+  --runtime=nvidia \
+  --gpus all \
   -v ~/Desktop/Detect_MoveTrack:/workspace \
-  -v /usr/local/lib/python3.10/dist-packages:/usr/local/lib/python3.10/dist-packages \
-  --network host \
+  --ipc=host \
   yolo11-jetson
+
 ```
 進入容器後 
 ```
