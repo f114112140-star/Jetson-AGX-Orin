@@ -31,6 +31,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3-dev \
+    build-essential \
     python3-opencv libopencv-dev \
     libglib2.0-0 libgl1-mesa-glx libgtk-3-0 \
     gstreamer1.0-tools \
@@ -79,7 +80,7 @@ RUN pip install \
 # ------------------------------------------------------------
 WORKDIR /workspace
 COPY . /workspace
-ENV PYTHONPATH=/workspace:$PYTHONPATH
+ENV PYTHONPATH=/workspace
 
 # ------------------------------------------------------------
 # 6. 預設進入 bash（不啟動 main.py）
@@ -94,15 +95,15 @@ sudo docker build --network host -t yolo11-jetson .
 # 執行程式
 啟動yolo11容器
 ```
-sudo docker run -it --rm \
-  --gpus all \
-  --runtime=nvidia \
+sudo docker run --runtime=nvidia -it --rm \
   --ipc=host \
   --ulimit memlock=-1 \
   --ulimit stack=67108864 \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v ~/Desktop/Detect_MoveTrack:/workspace \
+  -v ~/docker/yolo11:/workspace \
+  --network host \
+  yolo11-jetson
 ```
 進入容器後 
 ```
