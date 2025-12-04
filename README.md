@@ -99,10 +99,9 @@ RUN pip install numpy==1.26.4
 COPY torch-2.1.0-cp310-cp310-linux_aarch64.whl /tmp/
 RUN pip install /tmp/torch-2.1.0-cp310-cp310-linux_aarch64.whl
 
-# 安裝 GPU 版 TorchVision (Jetson 必須從 source 編譯)
-RUN git clone --branch v0.16.0 https://github.com/pytorch/vision.git /opt/vision
-WORKDIR /opt/vision
-RUN python3 setup.py install
+# 安裝 TorchVision 0.16.0（不編譯！）
+RUN pip install torchvision==0.16.0 --no-build-isolation --no-cache-dir
+
 # ------------------------------------------------------------
 # 4. 安裝 YOLO11 依賴（不碰 OpenCV）
 # ------------------------------------------------------------
