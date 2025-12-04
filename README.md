@@ -5,10 +5,26 @@ https://medium.com/@EricChou711/nvidia-jetson-agx-orin-%E5%AE%8C%E6%95%B4%E5%88%
 刷機完成，載入GPU驅動+JetPack 6.2.1 + CUDA + cuDNN + TensorRT
 <img width="1748" height="860" alt="image" src="https://github.com/user-attachments/assets/240d5fe0-408b-44fe-b2dc-7589bd0e9736" />
 # 遇到問題
-由於jetPack 6.2.1沒有提供PyTorch GPU版，所以要啟用NVIDIA官方Docker(含PyTorch+CUDA)，
+(1) 由於jetPack 6.2.1沒有提供PyTorch GPU版，所以要啟用NVIDIA官方Docker(含PyTorch+CUDA)，
 由於官方沒有yolo11 pose容器可以直接跑在jetson，所以自己建立image(yolo11-jetson)
 之後再將專案掛進Docker裡面執行
 
+(2)安裝pytroch到jetson主機
+
+下載torch-2.1.0-cp310-cp310-linux_aarch64.whl
+
+(https://forums.developer.nvidia.com/t/pytorch-for-jetpack-6-0/275200)
+```
+pip3 install torch-2.1.0-cp310-cp310-linux_aarch64.whl
+```
+測試有無torch跟cuda
+```
+python3 - << EOF
+import torch
+print("Torch:", torch.__version__)
+print("CUDA:", torch.cuda.is_available())
+EOF
+```
 拉取 NVIDIA 官方 PyTorch GPU 映像
 ```
 sudo docker pull nvcr.io/nvidia/l4t-base:r36.2.0
